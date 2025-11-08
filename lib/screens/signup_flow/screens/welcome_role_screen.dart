@@ -3,12 +3,10 @@ import '../../../models/signup_data_new.dart';
 
 class WelcomeRoleScreen extends StatefulWidget {
   final SignUpDataNew signUpData;
-  final Function(bool?) onRoleChange;
 
   const WelcomeRoleScreen({
     super.key,
     required this.signUpData,
-    required this.onRoleChange,
   });
 
   @override
@@ -82,44 +80,19 @@ class _WelcomeRoleScreenState extends State<WelcomeRoleScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Text(
-          'Welcome!',
+          'Create Your Account',
           style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Choose your role and create your account',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
-        ),
-        const SizedBox(height: 32),
-
-        // Role Selection Cards
-        const Text(
-          'I am a...',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: _buildRoleCard(
-                title: 'Mentee',
-                description: 'I want to be mentored',
-                icon: Icons.school,
-                isSelected: widget.signUpData.isMentor == false,
-                onTap: () => widget.onRoleChange(false),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildRoleCard(
-                title: 'Mentor',
-                description: 'I want to mentor others',
-                icon: Icons.person,
-                isSelected: widget.signUpData.isMentor == true,
-                onTap: () => widget.onRoleChange(true),
-              ),
-            ),
-          ],
+        Text(
+          'Welcome, ${widget.signUpData.isMentor == true ? 'Mentor' : 'Mentee'}!',
+          style: TextStyle(
+            fontSize: 16,
+            color: widget.signUpData.isMentor == true
+                ? Colors.purple
+                : Colors.blue,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(height: 32),
 
@@ -209,62 +182,6 @@ class _WelcomeRoleScreenState extends State<WelcomeRoleScreen> {
           onEditingComplete: _validatePassword,
         ),
       ],
-    );
-  }
-
-  Widget _buildRoleCard({
-    required String title,
-    required String description,
-    required IconData icon,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : Colors.grey[300]!,
-            width: isSelected ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(12),
-          color: isSelected
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.05)
-              : Colors.white,
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              size: 48,
-              color: isSelected
-                  ? Theme.of(context).colorScheme.primary
-                  : Colors.grey[600],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: isSelected
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              description,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../models/signup_data_new.dart';
+import 'screens/role_selection_screen.dart';
 import 'screens/welcome_role_screen.dart';
 import 'screens/mentee/mentee_location_screen.dart';
 import 'screens/mentee/mentee_identity_screen.dart';
@@ -23,23 +24,29 @@ class SignUpFlowScreen extends StatefulWidget {
 class _SignUpFlowScreenState extends State<SignUpFlowScreen> {
   int _currentStep = 0;
   final SignUpDataNew _signUpData = SignUpDataNew();
+  bool _roleSelected = false;
   String? _validationError;
 
   int get _totalSteps {
-    if (_signUpData.isMentor == null) {
-      return 2; // Welcome + Review (placeholder)
-    } else if (_signUpData.isMentor == true) {
+    if (_signUpData.isMentor == true) {
       return 7; // Welcome + 5 mentor screens + Review
     } else {
       return 6; // Welcome + 4 mentee screens + Review
     }
   }
 
+  void _handleRoleSelection(bool isMentor) {
+    setState(() {
+      _signUpData.isMentor = isMentor;
+      _roleSelected = true;
+    });
+  }
+
   String get _currentStepLabel {
     if (_currentStep == 0) {
-      return 'Welcome & Role';
+      return 'Account Info';
     }
-
+    
     if (_signUpData.isMentor == true) {
       switch (_currentStep) {
         case 1:
@@ -123,45 +130,10 @@ class _SignUpFlowScreenState extends State<SignUpFlowScreen> {
     });
   }
 
-  void _handleRoleChange(bool? newIsMentor) {
-    if (_signUpData.isMentor != null && _signUpData.isMentor != newIsMentor) {
-      // Warn about role change
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Change Role?'),
-          content: const Text(
-            'Changing your role will reset all role-specific answers. Do you want to continue?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                setState(() {
-                  _signUpData.isMentor = newIsMentor;
-                  _signUpData.resetRoleSpecificData();
-                  _currentStep = 0;
-                });
-              },
-              child: const Text('Continue'),
-            ),
-          ],
-        ),
-      );
-    } else {
-      setState(() {
-        _signUpData.isMentor = newIsMentor;
-      });
-    }
-  }
 
   String? _validateCurrentStep() {
     switch (_currentStep) {
-      case 0: // Welcome & Role
+      case 0: // Account Info
         if (_signUpData.email == null || _signUpData.email!.isEmpty) {
           return 'Email is required';
         }
@@ -173,9 +145,6 @@ class _SignUpFlowScreenState extends State<SignUpFlowScreen> {
         }
         if (_signUpData.password == null || _signUpData.password!.length < 8) {
           return 'Password must be at least 8 characters';
-        }
-        if (_signUpData.isMentor == null) {
-          return 'Please select a role (Mentor or Mentee)';
         }
         return null;
 
@@ -348,10 +317,7 @@ class _SignUpFlowScreenState extends State<SignUpFlowScreen> {
   Widget _buildCurrentScreen() {
     switch (_currentStep) {
       case 0:
-        return WelcomeRoleScreen(
-          signUpData: _signUpData,
-          onRoleChange: _handleRoleChange,
-        );
+        return WelcomeRoleScreen(signUpData: _signUpData);
       case 1:
         if (_signUpData.isMentor == true) {
           return MentorBackgroundScreen(signUpData: _signUpData);
@@ -399,6 +365,11 @@ class _SignUpFlowScreenState extends State<SignUpFlowScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Show role selection screen first
+    if (!_roleSelected) {
+      return RoleSelectionScreen(onRoleSelected: _handleRoleSelection);
+    }
+
     final isReviewStep =
         (_signUpData.isMentor == true && _currentStep == 6) ||
         (_signUpData.isMentor == false && _currentStep == 5);

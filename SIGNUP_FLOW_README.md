@@ -26,11 +26,17 @@ This is a comprehensive two-part, step-by-step sign-up flow with role-based bran
 
 ## Flow Structure
 
-### Part 1: Welcome & Role (Step 1)
-- **Role Selection**: Mentor or Mentee (large cards)
+### Pre-Flow: Role Selection (Not counted in steps)
+- **Initial Screen**: User selects between Mentor or Mentee
+- Large, prominent cards for each role
+- This selection happens before the signup flow begins
+- Does not count toward step progress
+
+### Part 1: Account Info (Step 1)
 - **Email**: With format validation
 - **Name**: Full name
 - **Password**: Minimum 8 characters, with show/hide toggle
+- Displays selected role (Mentor or Mentee)
 
 ### Part 2A: Mentee Branch (Steps 2-5)
 1. **Location** (Step 2)
@@ -90,7 +96,8 @@ lib/
 │   └── signup_flow/
 │       ├── signup_flow_screen.dart   # Main coordinator screen
 │       └── screens/
-│           ├── welcome_role_screen.dart
+│           ├── role_selection_screen.dart  # Pre-flow role selection
+│           ├── welcome_role_screen.dart    # Account info (Step 1)
 │           ├── review_screen.dart
 │           ├── mentee/
 │           │   ├── mentee_location_screen.dart
@@ -156,11 +163,15 @@ The `SignUpDataNew` class stores all form data and provides:
 
 ## Validation Rules
 
-### Part 1 (Welcome & Role)
+### Pre-Flow (Role Selection)
+- Role: Required (Mentor or Mentee)
+- Happens before signup flow begins
+- Not counted in step progress
+
+### Part 1 (Account Info)
 - Email: Required, must be valid email format
 - Name: Required, non-empty
 - Password: Required, minimum 8 characters
-- Role: Required (Mentor or Mentee)
 
 ### Mentee Validation
 - City, State: Required
@@ -182,7 +193,8 @@ The `SignUpDataNew` class stores all form data and provides:
 ### Progress Indicator
 - Shows "Step X of Y" where Y changes based on role selection
 - Updates in real-time as user navigates
-- Shows step label (e.g., "Location", "Identity")
+- Shows step label (e.g., "Account Info", "Location", "Identity")
+- Role selection screen does not show progress indicator (pre-flow)
 
 ### Validation Strategy
 - **On Blur**: Clears error when field is focused, validates when focus is lost
@@ -190,11 +202,11 @@ The `SignUpDataNew` class stores all form data and provides:
 - **Inline Errors**: Displayed below each field with red text
 - **Global Error**: Displayed in a banner above navigation buttons
 
-### Role Change Handling
-- Warns user that changing role will reset role-specific data
-- Requires confirmation via dialog
-- Resets to Step 1 after role change
-- Preserves Part 1 data (email, name, password)
+### Role Selection
+- Happens before signup flow begins
+- User cannot change role once selected (would need to restart)
+- Clean, prominent selection screen with large cards
+- Role is locked in once user proceeds to account info
 
 ### Review Screen
 - Groups information by section (matching the collection flow)
