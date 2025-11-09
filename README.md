@@ -63,6 +63,104 @@ Plataforma mobile que conecta estudantes do ensino médio com mentores experient
 
 **Material Design 3** com paleta laranja (#EC8206), gradientes suaves, cards com bordas arredondadas (16px), badges coloridos por contexto, animações fluidas e estados visuais claros (loading, empty, error). Interface responsiva com pull-to-refresh e feedback imediato em todas as ações.
 
+## 🚀 Como Rodar o App
+
+### Pré-requisitos
+
+- **Flutter SDK** 3.8.1 ou superior ([Instalar Flutter](https://flutter.dev/docs/get-started/install))
+- **Dart** 3.8.1 ou superior (incluído no Flutter)
+- **Android Studio** (para Android) ou **Xcode** (para iOS)
+- **Dispositivo físico** ou **emulador** configurado
+
+### Passos para Instalação
+
+1. **Clone o repositório**
+
+```bash
+git clone <url-do-repositorio>
+cd hackathonapp
+```
+
+2. **Instale as dependências**
+
+```bash
+flutter pub get
+```
+
+3. **Configure a URL da API**
+
+Edite o arquivo `lib/config/api_config.dart` e configure o `baseUrl` para apontar para o backend:
+
+```dart
+static const String baseUrl = 'https://seu-backend.com'; // ou http://localhost:8000 para desenvolvimento local
+```
+
+4. **Execute o app**
+
+Para Android/iOS (emulador ou dispositivo conectado):
+
+```bash
+flutter run
+```
+
+Para escolher um dispositivo específico:
+
+```bash
+flutter devices  # Lista dispositivos disponíveis
+flutter run -d <device-id>
+```
+
+### Dependências Principais
+
+- `flutter` - Framework mobile
+- `http: ^1.2.0` - Cliente HTTP para requisições API
+- `shared_preferences: ^2.2.2` - Armazenamento local persistente
+- `intl: ^0.20.2` - Formatação de datas e internacionalização
+- `mask_text_input_formatter: ^2.9.0` - Máscaras para campos de texto
+- `cupertino_icons: ^1.0.8` - Ícones iOS
+
+### Build para Produção
+
+**Android (APK):**
+
+```bash
+flutter build apk --release
+```
+
+**Android (App Bundle):**
+
+```bash
+flutter build appbundle --release
+```
+
+**iOS:**
+
+```bash
+flutter build ios --release
+```
+
+### Troubleshooting
+
+**Erro de certificado SSL (desenvolvimento local):**
+- Certifique-se de que o backend está rodando e acessível
+- Para testes locais, use `http://` ao invés de `https://`
+- Em Android, adicione `android:usesCleartextTraffic="true"` no `AndroidManifest.xml` (apenas desenvolvimento)
+
+**Erro ao instalar dependências:**
+
+```bash
+flutter clean
+flutter pub get
+```
+
+**Problemas com cache:**
+
+```bash
+flutter clean
+flutter pub cache repair
+flutter pub get
+```
+
 ## 🚀 Destaques Técnicos do Cliente
 
 ### Sistema de Cache Multi-Camadas
