@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/signup_flow/signup_flow_screen.dart';
+import 'screens/login_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,12 +11,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Hackathon App',
+      title: 'CareerPath',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const SignUpFlowScreen(),
+      home: const LoginScreen(),
     );
   }
 }
