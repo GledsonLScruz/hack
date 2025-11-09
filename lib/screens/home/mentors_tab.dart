@@ -662,17 +662,25 @@ class _MentorsTabState extends State<MentorsTab> {
             ),
             ElevatedButton.icon(
               onPressed: () {
+                // Capture message value immediately to avoid disposal issues
                 final message = messageController.text.trim();
+
                 if (message.isEmpty) {
+                  // Show snackbar without closing dialog
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Por favor, escreva uma mensagem'),
                       backgroundColor: Colors.red,
+                      duration: Duration(seconds: 2),
                     ),
                   );
                   return;
                 }
+
+                // Close dialog
                 Navigator.of(dialogContext).pop();
+
+                // Send request with captured message value
                 _sendMentorshipRequest(context, mentor.mentorId, message);
               },
               icon: const Icon(Icons.send, size: 18),

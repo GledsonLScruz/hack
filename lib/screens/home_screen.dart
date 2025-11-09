@@ -16,8 +16,8 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   Future<void> _handleLogout() async {
-    // Clear user data from shared preferences
-    await AuthService.clearUserData();
+    // Clear all caches (user data, roadmap, mentors, profile)
+    await AuthService.clearAllCaches();
 
     if (mounted) {
       Navigator.of(context).pushAndRemoveUntil(

@@ -53,6 +53,32 @@ class AuthService {
     }
   }
 
+  /// Clear all caches (user data, roadmap, mentors, profile)
+  static Future<void> clearAllCaches() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      // Clear user authentication data
+      await prefs.remove(_userDataKey);
+      
+      // Clear roadmap cache
+      await prefs.remove('roadmap_cache');
+      await prefs.remove('roadmap_cache_timestamp');
+      
+      // Clear mentors cache
+      await prefs.remove('mentors_cache');
+      await prefs.remove('mentors_cache_timestamp');
+      
+      // Clear profile cache
+      await prefs.remove('profile_cache');
+      await prefs.remove('profile_cache_timestamp');
+      
+      print('All caches cleared successfully');
+    } catch (e) {
+      print('Error clearing all caches: $e');
+    }
+  }
+
   /// Get access token
   static Future<String?> getAccessToken() async {
     final userData = await getUserData();
