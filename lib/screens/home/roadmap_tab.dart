@@ -34,15 +34,14 @@ class _RoadMapTabState extends State<RoadMapTab> {
     });
 
     try {
-      // Check cache first if not forcing refresh
-      if (!forceRefresh) {
-        var cachedData = await _loadFromCache();
-        if (cachedData != null) {
-          setState(() {
-            _roadmapData = cachedData;
-            _isLoading = false;
-          });
-        }
+      var cachedData = await _loadFromCache();
+      if (cachedData != null) {
+        setState(() {
+          _roadmapData = cachedData;
+          _isLoading = false;
+        });
+
+        return;
       }
 
       // Get user data from shared preferences
@@ -200,132 +199,116 @@ class _RoadMapTabState extends State<RoadMapTab> {
     }
 
     if (_errorMessage != null) {
-      return RefreshIndicator(
-        onRefresh: () => _loadRoadmap(forceRefresh: true),
-        color: const Color(0xFFEC8206),
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height - 200,
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Colors.red,
+      return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height - 200,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(
+                    _errorMessage!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFF6B7280),
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      _errorMessage!,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF6B7280),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () => _loadRoadmap(forceRefresh: true),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Tentar Novamente'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFEC8206),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: () => _loadRoadmap(forceRefresh: true),
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Tentar Novamente'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFEC8206),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
         ),
       );
     }
-    return RefreshIndicator(
-      onRefresh: () => _loadRoadmap(forceRefresh: true),
-      color: const Color(0xFFEC8206),
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header
-            const Text(
-              'Sua perspectiva de carreira',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Guiando você do ensino médio até a universidade',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-            const SizedBox(height: 32),
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header
+          const Text(
+            'Sua perspectiva de carreira',
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Guiando você do ensino médio até a universidade',
+            style: TextStyle(fontSize: 16, color: Colors.grey),
+          ),
+          const SizedBox(height: 32),
 
-            // Recommended Courses Section
-            _buildSectionHeader('Cursos Recomendados', Icons.school),
+          // Recommended Courses Section
+          _buildSectionHeader('Cursos Recomendados', Icons.school),
+          const SizedBox(height: 16),
+          _buildRecommendedCourses(),
+          const SizedBox(height: 32),
+
+          // Scholarship Opportunities Section
+          if (_roadmapData?.roadmap.bolsasEstudo.isNotEmpty ?? false) ...[
+            _buildSectionHeader('Bolsas de Estudo', Icons.school_outlined),
             const SizedBox(height: 16),
-            _buildRecommendedCourses(),
+            _buildScholarships(),
             const SizedBox(height: 32),
-
-            // Scholarship Opportunities Section
-            if (_roadmapData?.roadmap.bolsasEstudo.isNotEmpty ?? false) ...[
-              _buildSectionHeader('Bolsas de Estudo', Icons.school_outlined),
-              const SizedBox(height: 16),
-              _buildScholarships(),
-              const SizedBox(height: 32),
-            ],
-
-            // Entry Opportunities Section
-            if (_roadmapData?.roadmap.oportunidadesEntrada.isNotEmpty ??
-                false) ...[
-              _buildSectionHeader(
-                'Oportunidades de Entrada',
-                Icons.work_outline,
-              ),
-              const SizedBox(height: 16),
-              _buildEntryOpportunities(),
-              const SizedBox(height: 32),
-            ],
-
-            // Networking Events Section
-            if (_roadmapData?.roadmap.eventosNetworking.isNotEmpty ??
-                false) ...[
-              _buildSectionHeader('Eventos de Networking', Icons.event),
-              const SizedBox(height: 16),
-              _buildNetworkingEvents(),
-              const SizedBox(height: 32),
-            ],
-
-            // Skills to Develop Section
-            if (_roadmapData?.roadmap.habilidadesDesenvolver.isNotEmpty ??
-                false) ...[
-              _buildSectionHeader(
-                'Habilidades para Desenvolver',
-                Icons.psychology,
-              ),
-              const SizedBox(height: 16),
-              _buildSkillsToDevelop(),
-              const SizedBox(height: 32),
-            ],
-
-            // Job Market Section
-            if (_roadmapData?.roadmap.mercadoTrabalho != null) ...[
-              _buildSectionHeader('Mercado de Trabalho', Icons.trending_up),
-              const SizedBox(height: 16),
-              _buildJobMarket(),
-              const SizedBox(height: 16),
-            ],
           ],
-        ),
+
+          // Entry Opportunities Section
+          if (_roadmapData?.roadmap.oportunidadesEntrada.isNotEmpty ??
+              false) ...[
+            _buildSectionHeader('Oportunidades de Entrada', Icons.work_outline),
+            const SizedBox(height: 16),
+            _buildEntryOpportunities(),
+            const SizedBox(height: 32),
+          ],
+
+          // Networking Events Section
+          if (_roadmapData?.roadmap.eventosNetworking.isNotEmpty ?? false) ...[
+            _buildSectionHeader('Eventos de Networking', Icons.event),
+            const SizedBox(height: 16),
+            _buildNetworkingEvents(),
+            const SizedBox(height: 32),
+          ],
+
+          // Skills to Develop Section
+          if (_roadmapData?.roadmap.habilidadesDesenvolver.isNotEmpty ??
+              false) ...[
+            _buildSectionHeader(
+              'Habilidades para Desenvolver',
+              Icons.psychology,
+            ),
+            const SizedBox(height: 16),
+            _buildSkillsToDevelop(),
+            const SizedBox(height: 32),
+          ],
+
+          // Job Market Section
+          if (_roadmapData?.roadmap.mercadoTrabalho != null) ...[
+            _buildSectionHeader('Mercado de Trabalho', Icons.trending_up),
+            const SizedBox(height: 16),
+            _buildJobMarket(),
+            const SizedBox(height: 16),
+          ],
+        ],
       ),
     );
   }
