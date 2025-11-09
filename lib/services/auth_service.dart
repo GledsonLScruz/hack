@@ -53,7 +53,7 @@ class AuthService {
     }
   }
 
-  /// Clear all caches (user data, roadmap, mentors, profile)
+  /// Clear all caches (user data, roadmap, mentors, profile, requests)
   static Future<void> clearAllCaches() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -72,6 +72,10 @@ class AuthService {
       // Clear profile cache
       await prefs.remove('profile_cache');
       await prefs.remove('profile_cache_timestamp');
+      
+      // Clear received requests cache (for mentors)
+      await prefs.remove('received_requests_cache');
+      await prefs.remove('received_requests_cache_timestamp');
       
       print('All caches cleared successfully');
     } catch (e) {

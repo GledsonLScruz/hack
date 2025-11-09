@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import '../login_screen.dart';
-import '../../config/api_config.dart';
-import '../../models/user_profile_model.dart';
 import '../../services/auth_service.dart';
+import '../../models/user_logged_data.dart';
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
@@ -17,141 +13,47 @@ class ProfileTab extends StatefulWidget {
 class _ProfileTabState extends State<ProfileTab> {
   bool _isLoading = true;
   String? _errorMessage;
-  UserProfile? _userProfile;
-  static const String _cacheKey = 'profile_cache';
-  static const String _cacheTimestampKey = 'profile_cache_timestamp';
-  static const Duration _cacheDuration = Duration(days: 1);
+  UserData? _userData;
 
   @override
   void initState() {
     super.initState();
-    _loadUserProfile();
+    _loadUserData();
   }
 
-  Future<void> _loadUserProfile({bool forceRefresh = false}) async {
+  Future<void> _loadUserData() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      // Check cache first if not forcing refresh
-      if (!forceRefresh) {
-        var cachedData = await _loadFromCache();
-        if (cachedData != null) {
-          setState(() {
-            _userProfile = cachedData;
-            _isLoading = false;
-          });
-          return;
-        }
-      }
+      // Load user data from SharedPreferences (stored during login)
+      final userLoggedData = await AuthService.getUserData();
 
-      // Get authorization header
-      final authHeader = await AuthService.getAuthorizationHeader();
-      final headers = {
-        ...ApiConfig.defaultHeaders,
-        if (authHeader != null) 'Authorization': authHeader,
-      };
-
-      final response = await http.get(
-        Uri.parse(ApiConfig.userMeUrl),
-        headers: headers,
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        final profile = UserProfile.fromJson(data);
-
-        // Save to cache
-        await _saveToCache(profile);
-
-        if (mounted) {
-          setState(() {
-            _userProfile = profile;
-            _isLoading = false;
-          });
-        }
-      } else if (response.statusCode == 401) {
+      if (userLoggedData == null) {
         if (mounted) {
           setState(() {
             _errorMessage = 'Sessão expirada. Faça login novamente.';
             _isLoading = false;
           });
         }
-      } else {
-        if (mounted) {
-          setState(() {
-            _errorMessage = 'Erro ao carregar perfil. Tente novamente.';
-            _isLoading = false;
-          });
-        }
+        return;
+      }
+
+      if (mounted) {
+        setState(() {
+          _userData = userLoggedData.user;
+          _isLoading = false;
+        });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'Erro de conexão. Verifique sua internet.';
+          _errorMessage = 'Erro ao carregar dados do perfil.';
           _isLoading = false;
         });
       }
-    }
-  }
-
-  /// Load profile data from cache if available and not expired
-  Future<UserProfile?> _loadFromCache() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final cachedJson = prefs.getString(_cacheKey);
-      final cachedTimestamp = prefs.getInt(_cacheTimestampKey);
-
-      if (cachedJson == null || cachedTimestamp == null) {
-        return null;
-      }
-
-      // Check if cache is expired
-      final cacheTime = DateTime.fromMillisecondsSinceEpoch(cachedTimestamp);
-      final now = DateTime.now();
-      final difference = now.difference(cacheTime);
-
-      if (difference > _cacheDuration) {
-        // Cache expired, clear it
-        await _clearCache();
-        return null;
-      }
-
-      // Parse cached data
-      final data = jsonDecode(cachedJson) as Map<String, dynamic>;
-      return UserProfile.fromJson(data);
-    } catch (e) {
-      // If cache is corrupted, clear it
-      print('Error loading from cache: $e');
-      await _clearCache();
-      return null;
-    }
-  }
-
-  /// Save profile data to cache
-  Future<void> _saveToCache(UserProfile profile) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final jsonString = jsonEncode(profile.toJson());
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-
-      await prefs.setString(_cacheKey, jsonString);
-      await prefs.setInt(_cacheTimestampKey, timestamp);
-    } catch (e) {
-      print('Error saving to cache: $e');
-    }
-  }
-
-  /// Clear profile cache
-  Future<void> _clearCache() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_cacheKey);
-      await prefs.remove(_cacheTimestampKey);
-    } catch (e) {
-      print('Error clearing cache: $e');
     }
   }
 
@@ -166,44 +68,154 @@ class _ProfileTabState extends State<ProfileTab> {
     }
 
     if (_errorMessage != null) {
-      return RefreshIndicator(
-        onRefresh: () => _loadUserProfile(forceRefresh: true),
-        color: const Color(0xFFEC8206),
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height - 200,
-            child: Center(
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              Text(
+                _errorMessage!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: _loadUserData,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Tentar Novamente'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFEC8206),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_userData == null) {
+      return const Center(child: Text('Nenhum dado de perfil disponível'));
+    }
+
+    final userName = _userData!.nome;
+    final userRole = _userData!.isMentor ? 'Mentor' : 'Aluno';
+    final userPhoto = null; // URL to user photo or null
+    final userEmail = _userData!.email;
+
+    // Parse areas of interest and strengths from comma-separated strings
+    final areasOfInterest = _userData!.areasInteresse
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+
+    final strengths = _userData!.pontosFortes
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // Header Section with gradient background
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFEC8206), Color(0xFFF59E42)],
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Colors.red,
-                    ),
+                    // Profile Photo/Initial
+                    _buildProfilePhoto(userName, userPhoto),
                     const SizedBox(height: 16),
+
+                    // Name
                     Text(
-                      _errorMessage!,
-                      textAlign: TextAlign.center,
+                      userName,
                       style: const TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF6B7280),
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+
+                    // Role Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.5),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        userRole,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Email
+                    Text(
+                      userEmail,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.9),
                       ),
                     ),
                     const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: () => _loadUserProfile(forceRefresh: true),
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Tentar Novamente'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFEC8206),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
+
+                    // Edit Profile Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          // TODO: Navigate to edit profile screen
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Funcionalidade de edição em breve',
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.edit),
+                        label: const Text('Editar Perfil'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: const Color(0xFFEC8206),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
                         ),
                       ),
                     ),
@@ -212,168 +224,47 @@ class _ProfileTabState extends State<ProfileTab> {
               ),
             ),
           ),
-        ),
-      );
-    }
 
-    if (_userProfile == null) {
-      return const Center(child: Text('Nenhum dado de perfil disponível'));
-    }
+          // Content Section
+          Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Areas of Interest Section
+                _buildSectionTitle('Áreas de Interesse', Icons.interests),
+                const SizedBox(height: 16),
+                _buildChipsList(areasOfInterest, Colors.deepPurple),
+                const SizedBox(height: 32),
 
-    final userName = _userProfile!.nome;
-    final userRole = _userProfile!.roleLabel;
-    final userPhoto = null; // URL to user photo or null
-    final userEmail = _userProfile!.email;
-    final areasOfInterest = _userProfile!.areasInteresseList;
-    final strengths = _userProfile!.pontosFortesList;
+                // Strengths Section
+                _buildSectionTitle('Pontos Fortes', Icons.star),
+                const SizedBox(height: 16),
+                _buildChipsList(strengths, Colors.amber),
+                const SizedBox(height: 32),
 
-    return RefreshIndicator(
-      onRefresh: () => _loadUserProfile(forceRefresh: true),
-      color: const Color(0xFFEC8206),
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Column(
-          children: [
-            // Header Section with gradient background
-            Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFFEC8206), Color(0xFFF59E42)],
-                ),
-              ),
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
-                  child: Column(
-                    children: [
-                      // Profile Photo/Initial
-                      _buildProfilePhoto(userName, userPhoto),
-                      const SizedBox(height: 16),
-
-                      // Name
-                      Text(
-                        userName,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-
-                      // Role Badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.5),
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          userRole,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Email
-                      Text(
-                        userEmail,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white.withOpacity(0.9),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Edit Profile Button
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            // TODO: Navigate to edit profile screen
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Funcionalidade de edição em breve',
-                                ),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.edit),
-                          label: const Text('Editar Perfil'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: const Color(0xFFEC8206),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // Content Section
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Areas of Interest Section
-                  _buildSectionTitle('Áreas de Interesse', Icons.interests),
-                  const SizedBox(height: 16),
-                  _buildChipsList(areasOfInterest, Colors.deepPurple),
-                  const SizedBox(height: 32),
-
-                  // Strengths Section
-                  _buildSectionTitle('Pontos Fortes', Icons.star),
-                  const SizedBox(height: 16),
-                  _buildChipsList(strengths, Colors.amber),
-                  const SizedBox(height: 32),
-
-                  // Logout Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () => _handleLogout(context),
-                      icon: const Icon(Icons.logout),
-                      label: const Text('Sair da Conta'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red, width: 2),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                // Logout Button
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _handleLogout(context),
+                    icon: const Icon(Icons.logout),
+                    label: const Text('Sair da Conta'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red, width: 2),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                ],
-              ),
+                ),
+                const SizedBox(height: 16),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

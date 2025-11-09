@@ -11,6 +11,7 @@ class ApiConfig {
   static const String roadmapEndpoint = '/api/v1/roadmap/generate';
   static const String mentorsEndpoint = '/api/v1/match/mentors';
   static const String mentorshipRequestEndpoint = '/api/v1/mentorship-requests';
+  static const String receivedRequestsEndpoint = '/api/v1/mentorship-requests/received';
 
   // Full URLs
   static String get registerUrl => '$baseUrl$registerEndpoint';
@@ -19,6 +20,7 @@ class ApiConfig {
   static String get roadmapUrl => '$baseUrl$roadmapEndpoint';
   static String get mentorsUrl => '$baseUrl$mentorsEndpoint';
   static String get mentorshipRequestUrl => '$baseUrl$mentorshipRequestEndpoint';
+  static String get receivedRequestsUrl => '$baseUrl$receivedRequestsEndpoint';
 
   // Headers
   static Map<String, String> get defaultHeaders => {

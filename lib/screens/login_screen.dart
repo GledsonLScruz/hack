@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'signup_flow/signup_flow_screen.dart';
 import 'home_screen.dart';
+import 'mentor_home_screen.dart';
 import '../config/api_config.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -119,8 +120,14 @@ class _LoginScreenState extends State<LoginScreen> {
             _isLoading = false;
           });
 
+          // Route to different home screens based on isMentor flag
+          final isMentor = userData.user.isMentor;
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            MaterialPageRoute(
+              builder: (context) => isMentor
+                  ? const MentorHomeScreen()
+                  : const HomeScreen(),
+            ),
           );
         }
       } else if (response.statusCode == 401 || response.statusCode == 400) {
