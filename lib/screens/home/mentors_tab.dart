@@ -69,7 +69,7 @@ class _MentorsTabState extends State<MentorsTab> {
 
         if (mounted) {
           setState(() {
-            _mentors = mentorsResponse.mentors;
+            _mentors = mentorsResponse.matches;
             _isLoading = false;
           });
         }
@@ -151,10 +151,7 @@ class _MentorsTabState extends State<MentorsTab> {
           decoration: const BoxDecoration(
             color: Colors.white,
             border: Border(
-              bottom: BorderSide(
-                color: Color(0xFFE5E7EB),
-                width: 1,
-              ),
+              bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1),
             ),
           ),
           child: Column(
@@ -171,10 +168,7 @@ class _MentorsTabState extends State<MentorsTab> {
               const SizedBox(height: 8),
               const Text(
                 'Conecte-se com mentores que combinam com seu perfil',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Color(0xFF6B7280),
-                ),
+                style: TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
               ),
             ],
           ),
@@ -254,7 +248,7 @@ class _MentorsTabState extends State<MentorsTab> {
           // TODO: Navigate to mentor profile details
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Ver perfil de ${mentor.nome}'),
+              content: Text('Ver perfil de ${mentor.mentorName}'),
               duration: const Duration(seconds: 1),
             ),
           );
@@ -270,7 +264,7 @@ class _MentorsTabState extends State<MentorsTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Profile Photo/Initial
-                  _buildProfilePhoto(mentor.nome, mentor.foto),
+                  _buildProfilePhoto(mentor.mentorName, null),
                   const SizedBox(width: 16),
 
                   // Name and Match
@@ -279,7 +273,7 @@ class _MentorsTabState extends State<MentorsTab> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          mentor.nome,
+                          mentor.mentorName,
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -322,11 +316,7 @@ class _MentorsTabState extends State<MentorsTab> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          Icons.check_circle,
-                          size: 16,
-                          color: matchColor,
-                        ),
+                        Icon(Icons.check_circle, size: 16, color: matchColor),
                         const SizedBox(width: 4),
                         Text(
                           '$matchPercent%',
@@ -341,20 +331,81 @@ class _MentorsTabState extends State<MentorsTab> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
+
+              // Cargo and Location
+              Row(
+                children: [
+                  Icon(Icons.work_outline, size: 16, color: Colors.grey[600]),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      mentor.mentorCargo,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[700],
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Icon(Icons.location_on, size: 16, color: Colors.grey[600]),
+                  const SizedBox(width: 6),
+                  Text(
+                    mentor.location,
+                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
 
               // Description
               Text(
-                mentor.descricao,
+                mentor.mentorSobre,
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[700],
                   height: 1.5,
                 ),
-                maxLines: 3,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
+
+              // Match Reasons
+              if (mentor.matchReasons.isNotEmpty) ...[
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: mentor.matchReasons.take(2).map((reason) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEC8206).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        reason,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFFEC8206),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 12),
+              ],
 
               // Action Buttons
               Row(
@@ -365,7 +416,9 @@ class _MentorsTabState extends State<MentorsTab> {
                         // TODO: View full profile
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Ver perfil completo de ${mentor.nome}'),
+                            content: Text(
+                              'Ver perfil completo de ${mentor.mentorName}',
+                            ),
                             duration: const Duration(seconds: 1),
                           ),
                         );
@@ -387,7 +440,7 @@ class _MentorsTabState extends State<MentorsTab> {
                         // TODO: Connect with mentor
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Conectar com ${mentor.nome}'),
+                            content: Text('Conectar com ${mentor.mentorName}'),
                             duration: const Duration(seconds: 1),
                           ),
                         );
@@ -448,10 +501,7 @@ class _MentorsTabState extends State<MentorsTab> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFFEC8206),
-            Color(0xFFF59E42),
-          ],
+          colors: [Color(0xFFEC8206), Color(0xFFF59E42)],
         ),
       ),
       child: Center(
@@ -467,4 +517,3 @@ class _MentorsTabState extends State<MentorsTab> {
     );
   }
 }
-
