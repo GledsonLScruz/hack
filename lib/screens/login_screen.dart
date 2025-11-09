@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'signup_flow/signup_flow_screen.dart';
 import 'home_screen.dart';
-
-// TODO: Uncomment these imports when ready to connect to API
-// import 'dart:convert';
-// import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -71,63 +70,74 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    // Simulate loading for better UX
-    await Future.delayed(const Duration(seconds: 1));
-
-    // TODO: Uncomment this section when ready to connect to API
-    /*
     try {
+      // Prepare login request body
+      final requestBody = {
+        'grant_type': ApiConfig.grantTypePassword,
+        'username': _emailController.text,
+        'password': _passwordController.text,
+        'scope': '',
+      };
+
       final response = await http.post(
-        Uri.parse('https://your-api-endpoint.com/api/users/login'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'email': _emailController.text,
-          'password': _passwordController.text,
-        }),
+        Uri.parse(ApiConfig.loginUrl),
+        headers: ApiConfig.defaultHeaders,
+        body: jsonEncode(requestBody),
       );
 
       if (response.statusCode == 200) {
         // Success - parse response and navigate to home
-        final data = jsonDecode(response.body);
+        // final data = jsonDecode(response.body);
+        
+        // TODO: Store access token securely
+        // final accessToken = data['access_token'];
+        // final tokenType = data['token_type'];
+        // Store in secure storage or state management
         
         if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+          
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const HomeScreen()),
           );
         }
-      } else if (response.statusCode == 401) {
+      } else if (response.statusCode == 401 || response.statusCode == 400) {
         // Invalid credentials
+        String errorMsg = 'Email ou senha inválidos';
+        
+        // Try to parse error message from response
+        try {
+          final errorData = jsonDecode(response.body);
+          if (errorData['detail'] != null) {
+            errorMsg = errorData['detail'];
+          } else if (errorData['message'] != null) {
+            errorMsg = errorData['message'];
+          } else if (errorData['error'] != null) {
+            errorMsg = errorData['error'];
+          }
+        } catch (e) {
+          // Use default error message
+        }
+        
         setState(() {
           _isLoading = false;
-          _generalError = 'Invalid email or password';
+          _generalError = errorMsg;
         });
       } else {
         // Other error
         setState(() {
           _isLoading = false;
-          _generalError = 'Login failed. Please try again.';
+          _generalError = 'Falha no login. Tente novamente.';
         });
       }
     } catch (e) {
       // Network or other error
       setState(() {
         _isLoading = false;
-        _generalError = 'Connection error. Please check your internet.';
+        _generalError = 'Erro de conexão. Verifique sua internet.';
       });
-    }
-    */
-
-    // FOR TESTING: Always succeed
-    setState(() {
-      _isLoading = false;
-    });
-
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
     }
   }
 

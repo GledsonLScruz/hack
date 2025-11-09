@@ -32,6 +32,26 @@ class SignUpDataNew {
   String? mentorAreasOfInterest;
   String? mentorExtracurricularActivities;
 
+  // Additional fields for API (optional, can be null)
+  String? sobre;
+  String? disponibilidade;
+  String? objetivos;
+  String? cargoAtual;
+  String? localPretendeTrabalharOuEstudar1;
+  String? localPretendeTrabalharOuEstudar2;
+  String? localPretendeTrabalharOuEstudar3;
+  String? formacaoAcademica;
+  String? nomeFaculdade;
+  String? localidadeFaculdade;
+  String? nomeMestrado;
+  String? localidadeMestrado;
+  String? nomeDoutorado;
+  String? localidadeDoutorado;
+  String? nomePhd;
+  String? localidadePhd;
+  String? experiencias;
+  String? linkedinId;
+
   SignUpDataNew({
     this.email,
     this.name,
@@ -60,6 +80,24 @@ class SignUpDataNew {
     this.mentorStrengths,
     this.mentorAreasOfInterest,
     this.mentorExtracurricularActivities,
+    this.sobre,
+    this.disponibilidade,
+    this.objetivos,
+    this.cargoAtual,
+    this.localPretendeTrabalharOuEstudar1,
+    this.localPretendeTrabalharOuEstudar2,
+    this.localPretendeTrabalharOuEstudar3,
+    this.formacaoAcademica,
+    this.nomeFaculdade,
+    this.localidadeFaculdade,
+    this.nomeMestrado,
+    this.localidadeMestrado,
+    this.nomeDoutorado,
+    this.localidadeDoutorado,
+    this.nomePhd,
+    this.localidadePhd,
+    this.experiencias,
+    this.linkedinId,
   });
 
   Map<String, dynamic> toJson() {
@@ -97,6 +135,83 @@ class SignUpDataNew {
         "areas_of_interest": mentorAreasOfInterest ?? "",
         "extracurricular_activities": mentorExtracurricularActivities ?? "",
       },
+    };
+  }
+
+  // API format mapping
+  Map<String, dynamic> toApiJson() {
+    final bool isMentorValue = isMentor ?? false;
+
+    return {
+      "email": email ?? "",
+      "nome": name ?? "",
+      "senha": password ?? "",
+      "is_mentor": isMentorValue,
+
+      // Location fields (use mentor or mentee data based on role)
+      "cidade": isMentorValue ? (mentorHometownCity ?? "") : (menteeCity ?? ""),
+      "estado": isMentorValue
+          ? (mentorHometownState ?? "")
+          : (menteeState ?? ""),
+      "bairro": isMentorValue ? "" : (menteeNeighborhood ?? ""),
+
+      // Identity fields
+      "genero": isMentorValue ? (mentorGender ?? "") : (menteeGender ?? ""),
+      "cor_raca": isMentorValue
+          ? (mentorColorRace ?? "")
+          : (menteeColorRace ?? ""),
+      "is_pcd": isMentorValue
+          ? (mentorIsDisabled ?? false)
+          : (menteeIsDisabled ?? false),
+
+      // School/Education fields
+      "nome_escola": isMentorValue
+          ? (mentorHighSchoolName ?? "")
+          : (menteeSchoolName ?? ""),
+      "localidade_escola": isMentorValue
+          ? (mentorHighSchoolLocation ?? "")
+          : (menteeSchoolLocation ?? ""),
+
+      // Strengths and interests
+      "pontos_fortes": isMentorValue
+          ? (mentorStrengths ?? "")
+          : (menteeStrengths ?? ""),
+      "areas_interesse": isMentorValue
+          ? (mentorAreasOfInterest ?? "")
+          : (menteeAreasOfInterest ?? ""),
+
+      // Mentor-specific fields
+      "atividades_extracurriculares": mentorExtracurricularActivities ?? "",
+      "renda_familiar": mentorFamilyIncome ?? "",
+      "formacao_academica": mentorEducationLevel ?? "",
+
+      // Additional optional fields
+      "cidade_atual": isMentorValue
+          ? (mentorHometownCity ?? "")
+          : (menteeCity ?? ""),
+      "estado_atual": isMentorValue
+          ? (mentorHometownState ?? "")
+          : (menteeState ?? ""),
+      "sobre": sobre ?? "",
+      "disponibilidade": disponibilidade ?? "",
+      "objetivos": objetivos ?? "",
+      "cargo_atual": cargoAtual ?? "",
+      "local_pretende_trabalhar_ou_estudar_1":
+          localPretendeTrabalharOuEstudar1 ?? "",
+      "local_pretende_trabalhar_ou_estudar_2":
+          localPretendeTrabalharOuEstudar2 ?? "",
+      "local_pretende_trabalhar_ou_estudar_3":
+          localPretendeTrabalharOuEstudar3 ?? "",
+      "nome_faculdade": nomeFaculdade ?? "",
+      "localidade_faculdade": localidadeFaculdade ?? "",
+      "nome_mestrado": nomeMestrado ?? "",
+      "localidade_mestrado": localidadeMestrado ?? "",
+      "nome_doutorado": nomeDoutorado ?? "",
+      "localidade_doutorado": localidadeDoutorado ?? "",
+      "nome_phd": nomePhd ?? "",
+      "localidade_phd": localidadePhd ?? "",
+      "experiencias": experiencias ?? "",
+      "linkedin_id": linkedinId ?? "",
     };
   }
 

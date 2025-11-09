@@ -44,18 +44,9 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         },
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.map),
-            label: 'RoadMap',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: 'Mentores',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'RoadMap'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Mentores'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),
     );
@@ -99,4 +90,3 @@ class _HomeScreenState extends State<HomeScreen> {
     return const ProfileTab();
   }
 }
-

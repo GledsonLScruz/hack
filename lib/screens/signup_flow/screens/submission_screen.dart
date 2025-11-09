@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../models/signup_data_new.dart';
-
-// TODO: Uncomment these imports when ready to connect to API
-// import 'dart:convert';
-// import 'package:http/http.dart' as http;
+import '../../../config/api_config.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class SubmissionScreen extends StatefulWidget {
   final SignUpDataNew signUpData;
@@ -54,21 +53,13 @@ class _SubmissionScreenState extends State<SubmissionScreen>
       _hasError = false;
     });
 
-    // Simulate loading for better UX
-    await Future.delayed(const Duration(seconds: 1));
-
-    // TODO: Uncomment this section when ready to connect to API
-    /*
     try {
-      // Prepare the JSON data
-      final jsonData = widget.signUpData.toJson();
-
-      // Replace with your actual API endpoint
+      // Prepare the JSON data using the API format
+      final jsonData = widget.signUpData.toApiJson();
+      
       final response = await http.post(
-        Uri.parse('https://your-api-endpoint.com/api/users/signup'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        Uri.parse(ApiConfig.registerUrl),
+        headers: ApiConfig.defaultHeaders,
         body: jsonEncode(jsonData),
       );
 
@@ -88,10 +79,24 @@ class _SubmissionScreenState extends State<SubmissionScreen>
         }
       } else {
         // Error from server
+        String errorMsg = 'Falha ao criar conta. Tente novamente.';
+        
+        // Try to parse error message from response
+        try {
+          final errorData = jsonDecode(response.body);
+          if (errorData['message'] != null) {
+            errorMsg = errorData['message'];
+          } else if (errorData['error'] != null) {
+            errorMsg = errorData['error'];
+          }
+        } catch (e) {
+          // Use default error message
+        }
+        
         setState(() {
           _isCreatingUser = false;
           _hasError = true;
-          _errorMessage = 'Failed to create account. Please try again.';
+          _errorMessage = errorMsg;
         });
       }
     } catch (e) {
@@ -99,23 +104,8 @@ class _SubmissionScreenState extends State<SubmissionScreen>
       setState(() {
         _isCreatingUser = false;
         _hasError = true;
-        _errorMessage = 'Connection error. Please check your internet.';
+        _errorMessage = 'Erro de conexão. Verifique sua internet.';
       });
-    }
-    */
-
-    // FOR TESTING: Always succeed
-    setState(() {
-      _isCreatingUser = false;
-      _userCreated = true;
-    });
-
-    // Wait a bit to show success message
-    await Future.delayed(const Duration(seconds: 2));
-
-    // Navigate to home
-    if (mounted) {
-      widget.onSuccess();
     }
   }
 
@@ -142,7 +132,7 @@ class _SubmissionScreenState extends State<SubmissionScreen>
                     ),
                     const SizedBox(height: 40),
                     const Text(
-                      'Creating your account...',
+                      'Criando sua conta...',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -151,7 +141,7 @@ class _SubmissionScreenState extends State<SubmissionScreen>
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'Please wait while we set up your profile',
+                      'Aguarde enquanto configuramos seu perfil',
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.grey,
@@ -175,7 +165,7 @@ class _SubmissionScreenState extends State<SubmissionScreen>
                     ),
                     const SizedBox(height: 40),
                     const Text(
-                      'Account created successfully!',
+                      'Conta criada com sucesso!',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -185,7 +175,7 @@ class _SubmissionScreenState extends State<SubmissionScreen>
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'Welcome! Redirecting to home...',
+                      'Bem-vindo! Redirecionando...',
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.grey,
@@ -209,7 +199,7 @@ class _SubmissionScreenState extends State<SubmissionScreen>
                     ),
                     const SizedBox(height: 40),
                     const Text(
-                      'Something went wrong',
+                      'Algo deu errado',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -236,7 +226,7 @@ class _SubmissionScreenState extends State<SubmissionScreen>
                         ),
                       ),
                       child: const Text(
-                        'Try Again',
+                        'Tentar Novamente',
                         style: TextStyle(fontSize: 16),
                       ),
                     ),
