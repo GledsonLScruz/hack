@@ -74,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
       // Prepare login request body as form data (application/x-www-form-urlencoded)
       final requestBody = <String, String>{
         'grant_type': ApiConfig.grantTypePassword,
-        'email': _emailController.text,
+        'username': _emailController.text,
         'password': _passwordController.text,
         'scope': '',
       };

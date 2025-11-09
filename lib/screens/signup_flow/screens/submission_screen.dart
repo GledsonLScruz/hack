@@ -77,9 +77,6 @@ class _SubmissionScreenState extends State<SubmissionScreen>
         // Navigate to home
         if (mounted) {
           widget.onSuccess();
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-          );
         }
       } else {
         // Error from server
