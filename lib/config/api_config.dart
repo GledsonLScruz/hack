@@ -2,7 +2,7 @@
 /// Update the baseUrl with your actual API endpoint
 class ApiConfig {
   // TODO: Replace with your actual API base URL
-  static const String baseUrl = 'http://localhost:8000';
+  static const String baseUrl = 'http://46.62.237.170:8000';
 
   // API Endpoints
   static const String registerEndpoint = '/api/v1/users/register';
