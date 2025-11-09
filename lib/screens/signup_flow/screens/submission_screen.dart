@@ -1,7 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import '../../../models/signup_data_new.dart';
+
+// TODO: Uncomment these imports when ready to connect to API
+// import 'dart:convert';
+// import 'package:http/http.dart' as http;
 
 class SubmissionScreen extends StatefulWidget {
   final SignUpDataNew signUpData;
@@ -52,11 +54,16 @@ class _SubmissionScreenState extends State<SubmissionScreen>
       _hasError = false;
     });
 
+    // Simulate loading for better UX
+    await Future.delayed(const Duration(seconds: 1));
+
+    // TODO: Uncomment this section when ready to connect to API
+    /*
     try {
       // Prepare the JSON data
       final jsonData = widget.signUpData.toJson();
 
-      // TODO: Replace with your actual API endpoint
+      // Replace with your actual API endpoint
       final response = await http.post(
         Uri.parse('https://your-api-endpoint.com/api/users/signup'),
         headers: {
@@ -94,6 +101,21 @@ class _SubmissionScreenState extends State<SubmissionScreen>
         _hasError = true;
         _errorMessage = 'Connection error. Please check your internet.';
       });
+    }
+    */
+
+    // FOR TESTING: Always succeed
+    setState(() {
+      _isCreatingUser = false;
+      _userCreated = true;
+    });
+
+    // Wait a bit to show success message
+    await Future.delayed(const Duration(seconds: 2));
+
+    // Navigate to home
+    if (mounted) {
+      widget.onSuccess();
     }
   }
 
