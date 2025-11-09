@@ -1,10 +1,10 @@
-# 🎓 Plataforma de Mentoria e Orientação de Carreira
+# 🎓 EuDoAmanha
 
 Uma aplicação mobile desenvolvida em Flutter que conecta estudantes do ensino médio com mentores experientes, oferecendo orientação personalizada de carreira, recomendações de cursos e oportunidades educacionais.
 
 ## 📱 Sobre o Projeto
 
-Esta plataforma foi desenvolvida para ajudar jovens estudantes a traçarem seus caminhos profissionais, conectando-os com mentores qualificados e fornecendo roadmaps personalizados baseados em seus interesses, localização e pontos fortes.
+**EuDoAmanha** é uma plataforma desenvolvida durante o **Hackathon DEVS DE IMPACTO** com o objetivo de democratizar o acesso à orientação profissional de qualidade. A aplicação ajuda jovens estudantes a traçarem seus caminhos profissionais, conectando-os com mentores qualificados e fornecendo roadmaps personalizados baseados em seus interesses, localização e pontos fortes.
 
 ## ✨ Funcionalidades Principais
 
@@ -369,16 +369,30 @@ Esta plataforma foi desenvolvida para ajudar jovens estudantes a traçarem seus 
 - [ ] Grupos de estudo
 - [ ] Eventos ao vivo
 
+## 🏆 Hackathon DEVS DE IMPACTO
+
+Este projeto foi desenvolvido durante o **Hackathon DEVS DE IMPACTO**, um evento focado em criar soluções tecnológicas que geram impacto social positivo. O **EuDoAmanha** nasceu da necessidade de democratizar o acesso à orientação de carreira, especialmente para jovens que não têm recursos ou conexões para receber mentoria profissional.
+
+### Impacto Social
+
+- 🎯 **Democratização do Acesso** - Conecta estudantes de diferentes realidades com mentores qualificados
+- 🌍 **Alcance Nacional** - Sistema de matching considera localização para conexões regionais
+- 💡 **Orientação Personalizada** - Roadmaps baseados no perfil individual de cada estudante
+- 🤝 **Comunidade** - Cria uma rede de apoio entre estudantes e profissionais
+- 📚 **Educação Acessível** - Recomenda cursos gratuitos e bolsas de estudo
+
 ## 📄 Licença
 
-Este projeto foi desenvolvido como parte de um hackathon.
+Este projeto foi desenvolvido como parte do Hackathon DEVS DE IMPACTO.
 
 ## 👥 Contribuições
 
-Desenvolvido com ❤️ para conectar estudantes e mentores, facilitando o acesso à educação de qualidade e orientação profissional.
+Desenvolvido com ❤️ durante o **Hackathon DEVS DE IMPACTO** para conectar estudantes e mentores, facilitando o acesso à educação de qualidade e orientação profissional.
 
 ---
 
+**Projeto**: EuDoAmanha  
+**Evento**: Hackathon DEVS DE IMPACTO  
 **Versão**: 1.0.0  
 **Última Atualização**: Novembro 2025  
 **Plataformas**: Android, iOS  
