@@ -41,7 +41,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: _buildBody(),
+      body: _currentIndex == 0
+          ? RoadMapTab()
+          : _currentIndex == 1
+          ? MentorsTab()
+          : _currentIndex == 2
+          ? ProfileTab()
+          : RoadMapTab(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -69,30 +75,5 @@ class _HomeScreenState extends State<HomeScreen> {
       default:
         return 'Carreira';
     }
-  }
-
-  Widget _buildBody() {
-    switch (_currentIndex) {
-      case 0:
-        return _buildRoadMapTab();
-      case 1:
-        return _buildMentorsTab();
-      case 2:
-        return _buildProfileTab();
-      default:
-        return _buildRoadMapTab();
-    }
-  }
-
-  Widget _buildRoadMapTab() {
-    return const RoadMapTab();
-  }
-
-  Widget _buildMentorsTab() {
-    return const MentorsTab();
-  }
-
-  Widget _buildProfileTab() {
-    return const ProfileTab();
   }
 }
