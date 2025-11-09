@@ -71,34 +71,43 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // Prepare login request body
-      final requestBody = {
+      // Prepare login request body as form data (application/x-www-form-urlencoded)
+      final requestBody = <String, String>{
         'grant_type': ApiConfig.grantTypePassword,
-        'username': _emailController.text,
+        'email': _emailController.text,
         'password': _passwordController.text,
         'scope': '',
       };
 
+      // Override Content-Type to send form-encoded data. Keep other default headers.
+      final headers = {
+        ...ApiConfig.defaultHeaders,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      };
+
+      // When passing a Map<String, String> as body, the http package will
+      // encode it as application/x-www-form-urlencoded. We set the header
+      // explicitly to ensure the server interprets it as form data.
       final response = await http.post(
         Uri.parse(ApiConfig.loginUrl),
-        headers: ApiConfig.defaultHeaders,
-        body: jsonEncode(requestBody),
+        headers: headers,
+        body: requestBody,
       );
 
       if (response.statusCode == 200) {
         // Success - parse response and navigate to home
         // final data = jsonDecode(response.body);
-        
+
         // TODO: Store access token securely
         // final accessToken = data['access_token'];
         // final tokenType = data['token_type'];
         // Store in secure storage or state management
-        
+
         if (mounted) {
           setState(() {
             _isLoading = false;
           });
-          
+
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const HomeScreen()),
           );
@@ -106,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
       } else if (response.statusCode == 401 || response.statusCode == 400) {
         // Invalid credentials
         String errorMsg = 'Email ou senha inválidos';
-        
+
         // Try to parse error message from response
         try {
           final errorData = jsonDecode(response.body);
@@ -120,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
         } catch (e) {
           // Use default error message
         }
-        
+
         setState(() {
           _isLoading = false;
           _generalError = errorMsg;
@@ -142,9 +151,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _navigateToSignUp() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const SignUpFlowScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const SignUpFlowScreen()));
   }
 
   @override
@@ -185,8 +194,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   'Entre para continuar sua jornada',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: const Color(0xFF6B7280),
-                      ),
+                    color: const Color(0xFF6B7280),
+                  ),
                 ),
                 const SizedBox(height: 48),
 
@@ -261,14 +270,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: _isLoading ? null : () {
-                      // TODO: Implement forgot password
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Funcionalidade em breve'),
-                        ),
-                      );
-                    },
+                    onPressed: _isLoading
+                        ? null
+                        : () {
+                            // TODO: Implement forgot password
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Funcionalidade em breve'),
+                              ),
+                            );
+                          },
                     child: const Text('Esqueceu a senha?'),
                   ),
                 ),
@@ -286,7 +297,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.error_outline, color: Color(0xFFEF4444), size: 20),
+                        const Icon(
+                          Icons.error_outline,
+                          color: Color(0xFFEF4444),
+                          size: 20,
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
@@ -317,7 +332,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         )
                       : const Text(
@@ -339,8 +356,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Text(
                         'OU',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     const Expanded(child: Divider(color: Color(0xFFE5E7EB))),
@@ -359,9 +376,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   'Ao continuar, você concorda com nossos Termos de Serviço e Política de Privacidade',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontSize: 12,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontSize: 12),
                 ),
               ],
             ),
@@ -371,4 +388,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-
