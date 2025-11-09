@@ -8,11 +8,13 @@ class ApiConfig {
   static const String registerEndpoint = '/api/v1/users/register';
   static const String loginEndpoint = '/api/v1/users/login';
   static const String roadmapEndpoint = '/api/v1/roadmap/generate';
+  static const String mentorsEndpoint = '/api/v1/match/mentors';
 
   // Full URLs
   static String get registerUrl => '$baseUrl$registerEndpoint';
   static String get loginUrl => '$baseUrl$loginEndpoint';
   static String get roadmapUrl => '$baseUrl$roadmapEndpoint';
+  static String get mentorsUrl => '$baseUrl$mentorsEndpoint';
 
   // Headers
   static Map<String, String> get defaultHeaders => {

@@ -1,69 +1,146 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../../config/api_config.dart';
+import '../../models/mentor_model.dart';
+import '../../services/auth_service.dart';
 
-class MentorsTab extends StatelessWidget {
+class MentorsTab extends StatefulWidget {
   const MentorsTab({super.key});
 
   @override
+  State<MentorsTab> createState() => _MentorsTabState();
+}
+
+class _MentorsTabState extends State<MentorsTab> {
+  bool _isLoading = true;
+  String? _errorMessage;
+  List<Mentor> _mentors = [];
+  int _threshold = 30;
+  int _limit = 50;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMentors();
+  }
+
+  Future<void> _loadMentors() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // Get user data from shared preferences
+      final userData = await AuthService.getUserData();
+
+      if (userData == null) {
+        if (mounted) {
+          setState(() {
+            _errorMessage = 'Usuário não autenticado';
+            _isLoading = false;
+          });
+        }
+        return;
+      }
+
+      // Get authorization header
+      final authHeader = await AuthService.getAuthorizationHeader();
+      final headers = {
+        ...ApiConfig.defaultHeaders,
+        if (authHeader != null) 'Authorization': authHeader,
+      };
+
+      // Build URL with query parameters
+      final uri = Uri.parse(ApiConfig.mentorsUrl).replace(
+        queryParameters: {
+          'user_id': userData.user.id.toString(),
+          'threshold': _threshold.toString(),
+          'limit': _limit.toString(),
+        },
+      );
+
+      final response = await http.get(uri, headers: headers);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final mentorsResponse = MentorsResponse.fromJson(data);
+
+        if (mounted) {
+          setState(() {
+            _mentors = mentorsResponse.mentors;
+            _isLoading = false;
+          });
+        }
+      } else if (response.statusCode == 401) {
+        if (mounted) {
+          setState(() {
+            _errorMessage = 'Sessão expirada. Faça login novamente.';
+            _isLoading = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _errorMessage = 'Erro ao carregar mentores. Tente novamente.';
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Erro de conexão. Verifique sua internet.';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // TODO: Replace with actual data from API
-    final mentors = [
-      {
-        'name': 'Ana Carolina Silva',
-        'photo': null,
-        'match': 95,
-        'description':
-            'Engenheira de Software na Google. Graduada em Ciência da Computação pela USP. Apaixonada por ensinar e ajudar jovens a alcançarem seus objetivos.',
-      },
-      {
-        'name': 'Pedro Henrique Santos',
-        'photo': null,
-        'match': 88,
-        'description':
-            'Estudante de Mestrado em IA no MIT. Especialista em Machine Learning e Data Science. Mentor voluntário há 3 anos.',
-      },
-      {
-        'name': 'Maria Eduarda Costa',
-        'photo': null,
-        'match': 85,
-        'description':
-            'Desenvolvedora Full Stack na Microsoft. Formada em Engenharia de Software. Focada em orientação de carreira e desenvolvimento pessoal.',
-      },
-      {
-        'name': 'Lucas Fernandes',
-        'photo': null,
-        'match': 82,
-        'description':
-            'Empreendedor e fundador de startup de tecnologia. MBA em Gestão de Negócios. Experiência em mentoria de jovens empreendedores.',
-      },
-      {
-        'name': 'Juliana Oliveira',
-        'photo': null,
-        'match': 78,
-        'description':
-            'Cientista de Dados na Amazon. PhD em Estatística. Especialista em orientar estudantes em carreiras STEM.',
-      },
-      {
-        'name': 'Rafael Almeida',
-        'photo': null,
-        'match': 75,
-        'description':
-            'Arquiteto de Software na IBM. 10 anos de experiência em tecnologia. Mentor focado em desenvolvimento técnico e soft skills.',
-      },
-      {
-        'name': 'Camila Rodrigues',
-        'photo': null,
-        'match': 72,
-        'description':
-            'Product Manager na Nubank. Formada em Administração e Tecnologia. Ajuda jovens a descobrirem suas vocações.',
-      },
-      {
-        'name': 'Bruno Martins',
-        'photo': null,
-        'match': 68,
-        'description':
-            'Professor universitário e pesquisador. Doutor em Ciência da Computação. Experiência em orientação acadêmica.',
-      },
-    ];
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFEC8206)),
+        ),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              Text(
+                _errorMessage!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: _loadMentors,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Tentar Novamente'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFEC8206),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Column(
       children: [
@@ -105,35 +182,58 @@ class MentorsTab extends StatelessWidget {
 
         // Mentors List
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16.0),
-            itemCount: mentors.length,
-            itemBuilder: (context, index) {
-              final mentor = mentors[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: _buildMentorCard(
-                  context: context,
-                  name: mentor['name'] as String,
-                  photo: mentor['photo'] as String?,
-                  matchPercent: mentor['match'] as int,
-                  description: mentor['description'] as String,
+          child: _mentors.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.people_outline,
+                          size: 64,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Nenhum mentor encontrado',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF6B7280),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Tente ajustar seus filtros ou volte mais tarde',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF9CA3AF),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16.0),
+                  itemCount: _mentors.length,
+                  itemBuilder: (context, index) {
+                    final mentor = _mentors[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: _buildMentorCard(context, mentor),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
         ),
       ],
     );
   }
 
-  Widget _buildMentorCard({
-    required BuildContext context,
-    required String name,
-    required String? photo,
-    required int matchPercent,
-    required String description,
-  }) {
+  Widget _buildMentorCard(BuildContext context, Mentor mentor) {
+    final matchPercent = mentor.matchPercentage;
     Color matchColor;
     if (matchPercent >= 80) {
       matchColor = Colors.green;
@@ -154,7 +254,7 @@ class MentorsTab extends StatelessWidget {
           // TODO: Navigate to mentor profile details
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Ver perfil de $name'),
+              content: Text('Ver perfil de ${mentor.nome}'),
               duration: const Duration(seconds: 1),
             ),
           );
@@ -170,7 +270,7 @@ class MentorsTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Profile Photo/Initial
-                  _buildProfilePhoto(name, photo),
+                  _buildProfilePhoto(mentor.nome, mentor.foto),
                   const SizedBox(width: 16),
 
                   // Name and Match
@@ -179,7 +279,7 @@ class MentorsTab extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          name,
+                          mentor.nome,
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -245,7 +345,7 @@ class MentorsTab extends StatelessWidget {
 
               // Description
               Text(
-                description,
+                mentor.descricao,
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[700],
@@ -265,7 +365,7 @@ class MentorsTab extends StatelessWidget {
                         // TODO: View full profile
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Ver perfil completo de $name'),
+                            content: Text('Ver perfil completo de ${mentor.nome}'),
                             duration: const Duration(seconds: 1),
                           ),
                         );
@@ -287,7 +387,7 @@ class MentorsTab extends StatelessWidget {
                         // TODO: Connect with mentor
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Conectar com $name'),
+                            content: Text('Conectar com ${mentor.nome}'),
                             duration: const Duration(seconds: 1),
                           ),
                         );

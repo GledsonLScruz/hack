@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../config/api_config.dart';
 import '../../models/course_models.dart';
 import '../../services/auth_service.dart';
@@ -16,6 +17,9 @@ class _RoadMapTabState extends State<RoadMapTab> {
   bool _isLoading = true;
   String? _errorMessage;
   RoadmapResponse? _roadmapData;
+  static const String _cacheKey = 'roadmap_cache';
+  static const String _cacheTimestampKey = 'roadmap_cache_timestamp';
+  static const Duration _cacheDuration = Duration(days: 1);
 
   @override
   void initState() {
@@ -23,13 +27,27 @@ class _RoadMapTabState extends State<RoadMapTab> {
     _loadRoadmap();
   }
 
-  Future<void> _loadRoadmap() async {
+  Future<void> _loadRoadmap({bool forceRefresh = false}) async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
+      // Check cache first if not forcing refresh
+      if (!forceRefresh) {
+        final cachedData = await _loadFromCache();
+        if (cachedData != null) {
+          if (mounted) {
+            setState(() {
+              _roadmapData = cachedData;
+              _isLoading = false;
+            });
+          }
+          return;
+        }
+      }
+
       // Get user data from shared preferences
       final userData = await AuthService.getUserData();
 
@@ -81,6 +99,9 @@ class _RoadMapTabState extends State<RoadMapTab> {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         final roadmap = RoadmapResponse.fromJson(data);
 
+        // Save to cache
+        await _saveToCache(roadmap);
+
         if (mounted) {
           setState(() {
             _roadmapData = roadmap;
@@ -112,6 +133,62 @@ class _RoadMapTabState extends State<RoadMapTab> {
     }
   }
 
+  /// Load roadmap data from cache if available and not expired
+  Future<RoadmapResponse?> _loadFromCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cachedJson = prefs.getString(_cacheKey);
+      final cachedTimestamp = prefs.getInt(_cacheTimestampKey);
+
+      if (cachedJson == null || cachedTimestamp == null) {
+        return null;
+      }
+
+      // Check if cache is expired
+      final cacheTime = DateTime.fromMillisecondsSinceEpoch(cachedTimestamp);
+      final now = DateTime.now();
+      final difference = now.difference(cacheTime);
+
+      if (difference > _cacheDuration) {
+        // Cache expired, clear it
+        await _clearCache();
+        return null;
+      }
+
+      // Parse cached data
+      final data = jsonDecode(cachedJson) as Map<String, dynamic>;
+      return RoadmapResponse.fromJson(data);
+    } catch (e) {
+      print('Error loading from cache: $e');
+      return null;
+    }
+  }
+
+  /// Save roadmap data to cache
+  Future<void> _saveToCache(RoadmapResponse roadmap) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = jsonEncode(roadmap.toJson());
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+
+      await prefs.setString(_cacheKey, jsonString);
+      await prefs.setInt(_cacheTimestampKey, timestamp);
+    } catch (e) {
+      print('Error saving to cache: $e');
+    }
+  }
+
+  /// Clear roadmap cache
+  Future<void> _clearCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_cacheKey);
+      await prefs.remove(_cacheTimestampKey);
+    } catch (e) {
+      print('Error clearing cache: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -123,106 +200,132 @@ class _RoadMapTabState extends State<RoadMapTab> {
     }
 
     if (_errorMessage != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.red),
-              const SizedBox(height: 16),
-              Text(
-                _errorMessage!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: _loadRoadmap,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Tentar Novamente'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFEC8206),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
+      return RefreshIndicator(
+        onRefresh: () => _loadRoadmap(forceRefresh: true),
+        color: const Color(0xFFEC8206),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height - 200,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.red,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _errorMessage!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () => _loadRoadmap(forceRefresh: true),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Tentar Novamente'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFEC8206),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
         ),
       );
     }
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Header
-          const Text(
-            'Seu Mapa de Carreira',
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Guiando você do ensino médio até a universidade',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
-          ),
-          const SizedBox(height: 32),
-
-          // Recommended Courses Section
-          _buildSectionHeader('Cursos Recomendados', Icons.school),
-          const SizedBox(height: 16),
-          _buildRecommendedCourses(),
-          const SizedBox(height: 32),
-
-          // Scholarship Opportunities Section
-          if (_roadmapData?.roadmap.bolsasEstudo.isNotEmpty ?? false) ...[
-            _buildSectionHeader('Bolsas de Estudo', Icons.school_outlined),
-            const SizedBox(height: 16),
-            _buildScholarships(),
-            const SizedBox(height: 32),
-          ],
-
-          // Entry Opportunities Section
-          if (_roadmapData?.roadmap.oportunidadesEntrada.isNotEmpty ??
-              false) ...[
-            _buildSectionHeader('Oportunidades de Entrada', Icons.work_outline),
-            const SizedBox(height: 16),
-            _buildEntryOpportunities(),
-            const SizedBox(height: 32),
-          ],
-
-          // Networking Events Section
-          if (_roadmapData?.roadmap.eventosNetworking.isNotEmpty ?? false) ...[
-            _buildSectionHeader('Eventos de Networking', Icons.event),
-            const SizedBox(height: 16),
-            _buildNetworkingEvents(),
-            const SizedBox(height: 32),
-          ],
-
-          // Skills to Develop Section
-          if (_roadmapData?.roadmap.habilidadesDesenvolver.isNotEmpty ??
-              false) ...[
-            _buildSectionHeader(
-              'Habilidades para Desenvolver',
-              Icons.psychology,
+    return RefreshIndicator(
+      onRefresh: () => _loadRoadmap(forceRefresh: true),
+      color: const Color(0xFFEC8206),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header
+            const Text(
+              'Seu Mapa de Carreira',
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
-            _buildSkillsToDevelop(),
+            const SizedBox(height: 8),
+            const Text(
+              'Guiando você do ensino médio até a universidade',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
             const SizedBox(height: 32),
-          ],
 
-          // Job Market Section
-          if (_roadmapData?.roadmap.mercadoTrabalho != null) ...[
-            _buildSectionHeader('Mercado de Trabalho', Icons.trending_up),
+            // Recommended Courses Section
+            _buildSectionHeader('Cursos Recomendados', Icons.school),
             const SizedBox(height: 16),
-            _buildJobMarket(),
-            const SizedBox(height: 16),
+            _buildRecommendedCourses(),
+            const SizedBox(height: 32),
+
+            // Scholarship Opportunities Section
+            if (_roadmapData?.roadmap.bolsasEstudo.isNotEmpty ?? false) ...[
+              _buildSectionHeader('Bolsas de Estudo', Icons.school_outlined),
+              const SizedBox(height: 16),
+              _buildScholarships(),
+              const SizedBox(height: 32),
+            ],
+
+            // Entry Opportunities Section
+            if (_roadmapData?.roadmap.oportunidadesEntrada.isNotEmpty ??
+                false) ...[
+              _buildSectionHeader(
+                'Oportunidades de Entrada',
+                Icons.work_outline,
+              ),
+              const SizedBox(height: 16),
+              _buildEntryOpportunities(),
+              const SizedBox(height: 32),
+            ],
+
+            // Networking Events Section
+            if (_roadmapData?.roadmap.eventosNetworking.isNotEmpty ??
+                false) ...[
+              _buildSectionHeader('Eventos de Networking', Icons.event),
+              const SizedBox(height: 16),
+              _buildNetworkingEvents(),
+              const SizedBox(height: 32),
+            ],
+
+            // Skills to Develop Section
+            if (_roadmapData?.roadmap.habilidadesDesenvolver.isNotEmpty ??
+                false) ...[
+              _buildSectionHeader(
+                'Habilidades para Desenvolver',
+                Icons.psychology,
+              ),
+              const SizedBox(height: 16),
+              _buildSkillsToDevelop(),
+              const SizedBox(height: 32),
+            ],
+
+            // Job Market Section
+            if (_roadmapData?.roadmap.mercadoTrabalho != null) ...[
+              _buildSectionHeader('Mercado de Trabalho', Icons.trending_up),
+              const SizedBox(height: 16),
+              _buildJobMarket(),
+              const SizedBox(height: 16),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
