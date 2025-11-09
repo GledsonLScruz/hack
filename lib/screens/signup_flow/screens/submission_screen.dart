@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hackathonapp/screens/home_screen.dart';
 import '../../../models/signup_data_new.dart';
 import '../../../config/api_config.dart';
 import 'dart:convert';
@@ -56,7 +57,7 @@ class _SubmissionScreenState extends State<SubmissionScreen>
     try {
       // Prepare the JSON data using the API format
       final jsonData = widget.signUpData.toApiJson();
-      
+
       final response = await http.post(
         Uri.parse(ApiConfig.registerUrl),
         headers: ApiConfig.defaultHeaders,
@@ -76,11 +77,14 @@ class _SubmissionScreenState extends State<SubmissionScreen>
         // Navigate to home
         if (mounted) {
           widget.onSuccess();
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          );
         }
       } else {
         // Error from server
         String errorMsg = 'Falha ao criar conta. Tente novamente.';
-        
+
         // Try to parse error message from response
         try {
           final errorData = jsonDecode(response.body);
@@ -92,7 +96,7 @@ class _SubmissionScreenState extends State<SubmissionScreen>
         } catch (e) {
           // Use default error message
         }
-        
+
         setState(() {
           _isCreatingUser = false;
           _hasError = true;
@@ -126,9 +130,7 @@ class _SubmissionScreenState extends State<SubmissionScreen>
                     const SizedBox(
                       width: 80,
                       height: 80,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 6,
-                      ),
+                      child: CircularProgressIndicator(strokeWidth: 6),
                     ),
                     const SizedBox(height: 40),
                     const Text(
@@ -142,10 +144,7 @@ class _SubmissionScreenState extends State<SubmissionScreen>
                     const SizedBox(height: 16),
                     const Text(
                       'Aguarde enquanto configuramos seu perfil',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
-                      ),
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
                       textAlign: TextAlign.center,
                     ),
                   ] else if (_userCreated) ...[
@@ -176,10 +175,7 @@ class _SubmissionScreenState extends State<SubmissionScreen>
                     const SizedBox(height: 16),
                     const Text(
                       'Bem-vindo! Redirecionando...',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
-                      ),
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
                       textAlign: TextAlign.center,
                     ),
                   ] else if (_hasError) ...[
@@ -210,10 +206,7 @@ class _SubmissionScreenState extends State<SubmissionScreen>
                     const SizedBox(height: 16),
                     Text(
                       _errorMessage,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
-                      ),
+                      style: const TextStyle(fontSize: 16, color: Colors.grey),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 40),
@@ -240,4 +233,3 @@ class _SubmissionScreenState extends State<SubmissionScreen>
     );
   }
 }
-

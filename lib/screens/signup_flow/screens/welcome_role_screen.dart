@@ -41,11 +41,11 @@ class _WelcomeRoleScreenState extends State<WelcomeRoleScreen> {
   void _validateEmail() {
     setState(() {
       if (_emailController.text.isEmpty) {
-        _emailError = 'Email is required';
+        _emailError = 'Email é obrigatório';
       } else if (!RegExp(
         r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
       ).hasMatch(_emailController.text)) {
-        _emailError = 'Please enter a valid email address';
+        _emailError = 'Por favor, insira um email válido';
       } else {
         _emailError = null;
       }
@@ -55,7 +55,7 @@ class _WelcomeRoleScreenState extends State<WelcomeRoleScreen> {
   void _validateName() {
     setState(() {
       if (_nameController.text.isEmpty) {
-        _nameError = 'Name is required';
+        _nameError = 'Nome é obrigatório';
       } else {
         _nameError = null;
       }
@@ -65,9 +65,13 @@ class _WelcomeRoleScreenState extends State<WelcomeRoleScreen> {
   void _validatePassword() {
     setState(() {
       if (_passwordController.text.isEmpty) {
-        _passwordError = 'Password is required';
+        _passwordError = 'Senha é obrigatória';
       } else if (_passwordController.text.length < 8) {
-        _passwordError = 'Password must be at least 8 characters';
+        _passwordError = 'Senha deve ter no mínimo 8 caracteres';
+      } else if (!RegExp(r'[A-Z]').hasMatch(_passwordController.text)) {
+        _passwordError = 'Senha deve conter ao menos uma letra maiúscula';
+      } else if (!RegExp(r'[0-9]').hasMatch(_passwordController.text)) {
+        _passwordError = 'Senha deve conter ao menos um número';
       } else {
         _passwordError = null;
       }
@@ -80,12 +84,12 @@ class _WelcomeRoleScreenState extends State<WelcomeRoleScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Text(
-          'Create Your Account',
+          'Crie sua Conta',
           style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         Text(
-          'Welcome, ${widget.signUpData.isMentor == true ? 'Mentor' : 'Mentee'}!',
+          'Bem-vindo, ${widget.signUpData.isMentor == true ? 'Mentor' : 'Aluno'}!',
           style: TextStyle(
             fontSize: 16,
             color: widget.signUpData.isMentor == true
@@ -101,7 +105,7 @@ class _WelcomeRoleScreenState extends State<WelcomeRoleScreen> {
           controller: _emailController,
           decoration: InputDecoration(
             labelText: 'Email',
-            hintText: 'name@example.com',
+            hintText: 'seu@email.com',
             border: const OutlineInputBorder(),
             prefixIcon: const Icon(Icons.email_outlined),
             errorText: _emailError,
@@ -126,8 +130,8 @@ class _WelcomeRoleScreenState extends State<WelcomeRoleScreen> {
         TextField(
           controller: _nameController,
           decoration: InputDecoration(
-            labelText: 'Name',
-            hintText: 'Your full name',
+            labelText: 'Nome',
+            hintText: 'Seu nome completo',
             border: const OutlineInputBorder(),
             prefixIcon: const Icon(Icons.person_outline),
             errorText: _nameError,
@@ -151,8 +155,8 @@ class _WelcomeRoleScreenState extends State<WelcomeRoleScreen> {
         TextField(
           controller: _passwordController,
           decoration: InputDecoration(
-            labelText: 'Password',
-            hintText: 'At least 8 characters',
+            labelText: 'Senha',
+            hintText: 'Mínimo 8 caracteres, 1 maiúscula, 1 número',
             border: const OutlineInputBorder(),
             prefixIcon: const Icon(Icons.lock_outline),
             suffixIcon: IconButton(

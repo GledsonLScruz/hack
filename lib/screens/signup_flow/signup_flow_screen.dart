@@ -137,16 +137,22 @@ class _SignUpFlowScreenState extends State<SignUpFlowScreen> {
     switch (_currentStep) {
       case 0: // Account Info
         if (_signUpData.email == null || _signUpData.email!.isEmpty) {
-          return 'Email is required';
+          return 'Email é obrigatório';
         }
         if (!_isValidEmail(_signUpData.email!)) {
-          return 'Please enter a valid email address';
+          return 'Por favor, insira um email válido';
         }
         if (_signUpData.name == null || _signUpData.name!.isEmpty) {
-          return 'Name is required';
+          return 'Nome é obrigatório';
         }
         if (_signUpData.password == null || _signUpData.password!.length < 8) {
-          return 'Password must be at least 8 characters';
+          return 'Senha deve ter no mínimo 8 caracteres';
+        }
+        if (!RegExp(r'[A-Z]').hasMatch(_signUpData.password!)) {
+          return 'Senha deve conter ao menos uma letra maiúscula';
+        }
+        if (!RegExp(r'[0-9]').hasMatch(_signUpData.password!)) {
+          return 'Senha deve conter ao menos um número';
         }
         return null;
 
