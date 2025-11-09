@@ -113,15 +113,6 @@ class _SignUpFlowScreenState extends State<SignUpFlowScreen> {
     }
   }
 
-  void _handleSaveAndContinueLater() {
-    // In a real app, save to local storage
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Progress saved! You can continue later.'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
 
   void _jumpToStep(int step) {
     setState(() {
@@ -252,10 +243,6 @@ class _SignUpFlowScreenState extends State<SignUpFlowScreen> {
           }
         } else {
           // Mentee Interests & Strengths
-          if (_signUpData.menteeAcademicInterests == null ||
-              _signUpData.menteeAcademicInterests!.isEmpty) {
-            return 'Academic interests are required';
-          }
           if (_signUpData.menteeStrengths == null ||
               _signUpData.menteeStrengths!.isEmpty) {
             return 'Strengths are required';
@@ -481,17 +468,7 @@ class _SignUpFlowScreenState extends State<SignUpFlowScreen> {
                 ),
               ],
             ),
-            child: Column(
-              children: [
-                // Save & Continue Later
-                if (!isReviewStep)
-                  TextButton(
-                    onPressed: _handleSaveAndContinueLater,
-                    child: const Text('Save & continue later'),
-                  ),
-                const SizedBox(height: 8),
-                // Back and Next buttons
-                Row(
+            child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     if (_currentStep > 0)
@@ -520,8 +497,6 @@ class _SignUpFlowScreenState extends State<SignUpFlowScreen> {
                       ),
                   ],
                 ),
-              ],
-            ),
           ),
         ],
       ),

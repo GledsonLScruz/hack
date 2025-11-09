@@ -14,7 +14,6 @@ class SignUpDataNew {
   bool? menteeIsDisabled;
   String? menteeSchoolName;
   String? menteeSchoolLocation;
-  String? menteeAcademicInterests;
   String? menteeStrengths;
   String? menteeAreasOfInterest;
 
@@ -46,7 +45,6 @@ class SignUpDataNew {
     this.menteeIsDisabled,
     this.menteeSchoolName,
     this.menteeSchoolLocation,
-    this.menteeAcademicInterests,
     this.menteeStrengths,
     this.menteeAreasOfInterest,
     this.mentorAge,
@@ -81,7 +79,6 @@ class SignUpDataNew {
         "is_disabled": menteeIsDisabled,
         "school_name": menteeSchoolName ?? "",
         "school_location": menteeSchoolLocation ?? "",
-        "academic_interests": menteeAcademicInterests ?? "",
         "strengths": menteeStrengths ?? "",
         "areas_of_interest": menteeAreasOfInterest ?? "",
       },
@@ -114,7 +111,6 @@ class SignUpDataNew {
       menteeIsDisabled = null;
       menteeSchoolName = null;
       menteeSchoolLocation = null;
-      menteeAcademicInterests = null;
       menteeStrengths = null;
       menteeAreasOfInterest = null;
     } else {

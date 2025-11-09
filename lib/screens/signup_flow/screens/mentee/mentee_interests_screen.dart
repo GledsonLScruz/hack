@@ -14,18 +14,14 @@ class MenteeInterestsScreen extends StatefulWidget {
 }
 
 class _MenteeInterestsScreenState extends State<MenteeInterestsScreen> {
-  final _academicInterestsController = TextEditingController();
   final _strengthsController = TextEditingController();
   final _areasOfInterestController = TextEditingController();
-  String? _academicInterestsError;
   String? _strengthsError;
   String? _areasOfInterestError;
 
   @override
   void initState() {
     super.initState();
-    _academicInterestsController.text =
-        widget.signUpData.menteeAcademicInterests ?? '';
     _strengthsController.text = widget.signUpData.menteeStrengths ?? '';
     _areasOfInterestController.text =
         widget.signUpData.menteeAreasOfInterest ?? '';
@@ -33,20 +29,9 @@ class _MenteeInterestsScreenState extends State<MenteeInterestsScreen> {
 
   @override
   void dispose() {
-    _academicInterestsController.dispose();
     _strengthsController.dispose();
     _areasOfInterestController.dispose();
     super.dispose();
-  }
-
-  void _validateAcademicInterests() {
-    setState(() {
-      if (_academicInterestsController.text.isEmpty) {
-        _academicInterestsError = 'Academic interests are required';
-      } else {
-        _academicInterestsError = null;
-      }
-    });
   }
 
   void _validateStrengths() {
@@ -90,33 +75,6 @@ class _MenteeInterestsScreenState extends State<MenteeInterestsScreen> {
           ),
         ),
         const SizedBox(height: 32),
-
-        // Academic Interests
-        TextField(
-          controller: _academicInterestsController,
-          decoration: InputDecoration(
-            labelText: 'Academic Interests',
-            hintText: 'Math, Science, Literature...',
-            border: const OutlineInputBorder(),
-            prefixIcon: const Icon(Icons.book),
-            errorText: _academicInterestsError,
-            helperText: 'What subjects do you enjoy?',
-          ),
-          maxLines: 3,
-          onChanged: (value) {
-            widget.signUpData.menteeAcademicInterests = value;
-            if (_academicInterestsError != null) {
-              _validateAcademicInterests();
-            }
-          },
-          onTap: () {
-            setState(() {
-              _academicInterestsError = null;
-            });
-          },
-          onEditingComplete: _validateAcademicInterests,
-        ),
-        const SizedBox(height: 16),
 
         // Strengths
         TextField(
